@@ -1,5 +1,6 @@
 package edu.dixietech.alanmcgraw.cropcanvas.data.repository
 
+import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Plot
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Product
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Profile
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Receipt
@@ -15,5 +16,11 @@ interface CropCanvasRepository {
 
     suspend fun purchaseSeed(seed: Seed, amount: Int): Flow<AsyncResult<Receipt>>
 
+    suspend fun getPlots(): Flow<AsyncResult<List<Plot>>>
+
     suspend fun getProducts(): Flow<AsyncResult<List<Product>>>
+
+    suspend fun plantSeeds(plot: Plot): Flow<AsyncResult<Plot>>
+
+    suspend fun harvestCrop(plot: Plot): Flow<AsyncResult<Plot>>
 }

@@ -2,6 +2,8 @@ package edu.dixietech.alanmcgraw.cropcanvas.data.network
 
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.AuthResponse
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.CropCanvasError
+import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.PlotDto
+import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.PlotResponseDto
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.ProductDto
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.ProfileDto
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.PurchaseRequest
@@ -96,6 +98,28 @@ class KtorCropCanvasApi(
             else -> throw UnexpectedResponseException()
         }
     }
+
+    override suspend fun getPlots(token: String): List<PlotDto> = withContext(context) {
+        val response = client.get("https://cropcanvas.dev/plots") {
+            header("Authorization", "Bearer $token")
+            header("Content-Type", "application/json")
+        }
+
+        when (response.status.value) {
+            200 -> return@withContext response.body()
+            400, 401, 500 -> throw response.body<CropCanvasError>()
+            else -> throw UnexpectedResponseException()
+        }
+    }
+
+    override suspend fun plantSeeds(token: String, plotId: Int): PlotDto {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun harvestCrop(token: String, plotId: Int): PlotDto {
+        TODO("Not yet implemented")
+    }
+
 
     override suspend fun getProducts(token: String): List<ProductDto> {
         TODO("Not yet implemented")

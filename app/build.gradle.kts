@@ -53,6 +53,9 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.coroutine.test)
+    testImplementation(libs.turbine)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -70,6 +73,11 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)
 
+    // Database
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
     // Dependency Injection
     implementation(libs.hilt.android)
     implementation(libs.hilt.viewmodel)
@@ -80,4 +88,5 @@ dependencies {
     implementation(libs.ktor.android)
     implementation(libs.ktor.content.negotiation)
     implementation(libs.ktor.serialization)
+    testImplementation(kotlin("test"))
 }

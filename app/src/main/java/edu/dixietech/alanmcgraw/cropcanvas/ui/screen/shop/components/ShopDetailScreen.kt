@@ -9,9 +9,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,6 +26,7 @@ import edu.dixietech.alanmcgraw.cropcanvas.ui.components.CustomTopAppBar
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRow
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRowCostLabel
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRowTimeLabel
+import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.shop.PurchaseState
 import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.shop.ShopUiState
 import edu.dixietech.alanmcgraw.cropcanvas.ui.theme.CropCanvasTheme
 import edu.dixietech.alanmcgraw.cropcanvas.utils.drawableResource
@@ -36,6 +41,21 @@ fun ShopDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val mediumSpacing = dimensionResource(R.dimen.medium_spacing)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+//    LaunchedEffect(state.purchaseState) {
+//        if (state.purchaseState is PurchaseState.Purchased) {
+//            snackbarHostState.showSnackbar(
+//                message = context.getString(
+//                    R.string.purchase_success,
+//                    state.purchaseState.seed.name
+//                ),
+//                withDismissAction = true
+//            )
+//            onClosedDetail()
+//        }
+//    }
 
     Scaffold(
         topBar = {

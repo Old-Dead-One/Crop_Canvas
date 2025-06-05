@@ -1,7 +1,10 @@
 package edu.dixietech.alanmcgraw.cropcanvas.data.repository
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import edu.dixietech.alanmcgraw.cropcanvas.data.auth.UserAuthenticator
+import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Plot
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Product
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Profile
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Receipt
@@ -58,9 +61,32 @@ class CropCanvasRepositoryImpl(
         }
     }.flowOn(context)
 
-    override suspend fun getProducts() = flow<AsyncResult<List<Product>>> {
+    @RequiresApi(Build.VERSION_CODES.O)
+    override suspend fun getPlots() = flow<AsyncResult<List<Plot>>> {
+        emit(AsyncResult.Loading())
+        try {
+            val token = getUserToken()
+            val plotDto = network.getPlots(token)
+            val plots = plotDto.map { it.toPlot() }
+            emit(AsyncResult.Success(plots))
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, e.message ?: "Unknown Exception", e)
+            emit(AsyncResult.Error(e.message ?: "Unknown Error"))
+        }
+    }.flowOn(context)
+
+    override suspend fun getProducts(): Flow<AsyncResult<List<Product>>> {
         TODO("Not yet implemented")
     }
+
+    override suspend fun plantSeeds(plot: Plot): Flow<AsyncResult<Plot>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun harvestCrop(plot: Plot): Flow<AsyncResult<Plot>> {
+        TODO("Not yet implemented")
+    }
+
 
     private suspend fun getUserToken(): String {
         val token = userAuthenticator.authToken.first()
