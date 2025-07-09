@@ -1,5 +1,6 @@
 package edu.dixietech.alanmcgraw.cropcanvas.data.network.model
 
+import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Seed
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Shop
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -13,9 +14,10 @@ data class ShopDto(
 
     val items: List<SeedDto>
 ) {
-    fun toShop() = Shop(
+    fun toShop(ownedSeeds: List<Seed>) = Shop(
         balance = balance,
         items = items.map(SeedDto::toSeed),
         products = emptyList(),
+        ownedSeeds = ownedSeeds
     )
 }

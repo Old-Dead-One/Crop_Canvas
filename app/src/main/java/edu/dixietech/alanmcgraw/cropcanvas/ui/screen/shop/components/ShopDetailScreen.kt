@@ -5,10 +5,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,18 +44,17 @@ fun ShopDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
-//    LaunchedEffect(state.purchaseState) {
-//        if (state.purchaseState is PurchaseState.Purchased) {
-//            snackbarHostState.showSnackbar(
-//                message = context.getString(
-//                    R.string.purchase_success,
-//                    state.purchaseState.seed.name
-//                ),
-//                withDismissAction = true
-//            )
-//            onClosedDetail()
-//        }
-//    }
+    LaunchedEffect(state.purchaseState) {
+        if (state.purchaseState is PurchaseState.Purchased) {
+            snackbarHostState.showSnackbar(
+                message = context.getString(
+                    R.string.successfully_purchased,
+                    state.purchaseState.seed.name
+                ),
+                withDismissAction = true
+            )
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -83,8 +82,6 @@ fun ShopDetailScreen(
                         modifier = Modifier
                             .clickable { onOpenDetail(item) }
                     )
-
-                    HorizontalDivider()
                 }
             }
 
@@ -94,6 +91,9 @@ fun ShopDetailScreen(
                     content = {
                         PurchaseSeedPrompt(
                             state = state.purchaseState,
+                            numberOwned = state.shop.ownedSeeds.firstOrNull
+                            { it.name == state.purchaseState.seed.name } ?.amount ?: 0,
+                            balance = state.shop.balance,
                             onPurchase = onPurchase,
                             modifier = Modifier
                                 .padding(bottom = mediumSpacing),
@@ -101,6 +101,9 @@ fun ShopDetailScreen(
                     }
                 )
             }
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
         },
         modifier = modifier
     )
@@ -115,7 +118,8 @@ private fun ShopScreenDetailPrev() {
                 shop = Shop(
                     balance = 1000,
                     items = Seed.examples,
-                    products = emptyList()
+                    products = emptyList(),
+                    ownedSeeds = emptyList()
                 )
             ),
             onPurchase = { },

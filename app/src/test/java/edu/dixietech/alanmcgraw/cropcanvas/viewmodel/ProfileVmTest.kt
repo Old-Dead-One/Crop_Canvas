@@ -49,7 +49,12 @@ class ProfileVmTest {
     @Test
     fun `loadProfile emits Loading then Success`()= runTest {
         // Setup
-        val profile = Profile("test-name", 1000, emptyList(), emptyList())
+        val profile = Profile("test-name", 1000, emptyList(), emptyList()) {
+            fun toProfile() = profile.toProfile(
+                seeds = seeds.map(SeedEntity::toSeed),
+                products = products.map(ProductEntity::toProduct),
+            )
+        }
 
         // Creates a flow of AsyncResult objects that emits Loading and Success with the given profile.
         val flow = flowOf(

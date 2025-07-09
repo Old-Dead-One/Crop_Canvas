@@ -27,10 +27,19 @@ class AuthVm @Inject constructor(
 
     init {
         viewModelScope.launch {
-            userRepo.authToken.collect { token ->
-                // Handle Token Changes
-                if (token == null) _uiState.value = AuthUiState.Unauthenticated
-                else _uiState.value = AuthUiState.Authenticated(token)
+            try {
+                userRepo.authToken.collect { token ->
+                    // Handle Token Changes
+                    android.util.Log.d("AuthVm", "Token received: ${token?.take(10)}...")
+                    if (token == null) {
+                        _uiState.value = AuthUiState.Unauthenticated
+                    } else {
+                        _uiState.value = AuthUiState.Authenticated(token)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("AuthVm", "Error in auth token flow", e)
+                _uiState.value = AuthUiState.Error("Authentication error: ${e.message}")
             }
         }
     }

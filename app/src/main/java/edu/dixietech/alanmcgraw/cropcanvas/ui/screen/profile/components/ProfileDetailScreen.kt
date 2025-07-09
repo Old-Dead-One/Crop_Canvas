@@ -2,6 +2,7 @@ package edu.dixietech.alanmcgraw.cropcanvas.ui.screen.profile.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import edu.dixietech.alanmcgraw.cropcanvas.R
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Profile
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Seed
@@ -26,6 +28,7 @@ import edu.dixietech.alanmcgraw.cropcanvas.ui.theme.CropCanvasTheme
 fun ProfileDetailScreen(
     profile: Profile,
     onSignOut: () -> Unit,
+    onSellProduct: (String, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -74,27 +77,11 @@ fun ProfileDetailScreen(
             ) {
                 when (tabIndex) {
                     0 -> ProfileSeedList(profile.seeds)
-                    1 -> ProfileProductList(profile.products)
+                    1 -> ProfileProductList(profile.products, onSellProduct)
                     2 -> ProfileSettings(onSignOut)
                 }
             }
         },
         modifier = modifier
     )
-}
-
-@Preview
-@Composable
-private fun ProfileDetailScreenPreview() {
-    CropCanvasTheme {
-        ProfileDetailScreen(
-            profile = Profile(
-                name = "OldDeadOne",
-                balance = 1000,
-                seeds = Seed.examples,
-                products = emptyList()
-            ),
-            onSignOut = { }
-        )
-    }
 }

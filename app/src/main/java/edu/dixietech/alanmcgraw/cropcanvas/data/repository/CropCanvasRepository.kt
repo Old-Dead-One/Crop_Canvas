@@ -10,7 +10,9 @@ import edu.dixietech.alanmcgraw.cropcanvas.utils.AsyncResult
 import kotlinx.coroutines.flow.Flow
 
 interface CropCanvasRepository {
-    suspend fun getUserProfile(): Flow<AsyncResult<Profile>>
+    fun getUserProfile(): Flow<AsyncResult<Profile>>
+    
+    fun observeUserProfile(): Flow<Profile>
 
     suspend fun getShop(): Flow<AsyncResult<Shop>>
 
@@ -20,7 +22,9 @@ interface CropCanvasRepository {
 
     suspend fun getProducts(): Flow<AsyncResult<List<Product>>>
 
-    suspend fun plantSeeds(plot: Plot): Flow<AsyncResult<Plot>>
+    suspend fun plantSeeds(plotId: String, seedName: String, seedAmount: Int): Flow<AsyncResult<Plot>>
 
     suspend fun harvestCrop(plot: Plot): Flow<AsyncResult<Plot>>
+    
+    suspend fun sellProducts(productName: String, amount: Int): Flow<AsyncResult<Receipt>>
 }

@@ -1,5 +1,6 @@
 package edu.dixietech.alanmcgraw.cropcanvas.data.network.model
 
+import edu.dixietech.alanmcgraw.cropcanvas.data.database.entities.SeedEntity
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Seed
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -19,5 +20,13 @@ data class SeedDto(
         amount = amount,
         price = price,
         growthDuration = growthDuration
+    )
+
+    fun toSeedEntity(profileName: String) = SeedEntity(
+        name = name,
+        amount = amount,
+        price = price,
+        growthDuration = growthDuration,
+        profileName = profileName
     )
 }

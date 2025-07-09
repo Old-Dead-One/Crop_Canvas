@@ -5,5 +5,6 @@ data class Profile(
     val balance: Int,
 
     val seeds: List<Seed>,
-    val products: List<Product>
+    val products: List<Product>,
+    val plots: List<Plot>
 )

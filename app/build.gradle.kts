@@ -86,6 +86,7 @@ dependencies {
     // Networking
     implementation(libs.ktor.core)
     implementation(libs.ktor.android)
+    implementation(libs.ktor.okhttp)
     implementation(libs.ktor.content.negotiation)
     implementation(libs.ktor.serialization)
     testImplementation(kotlin("test"))

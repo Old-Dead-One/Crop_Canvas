@@ -19,3 +19,19 @@ fun Product.drawableResource(): Int {
         else -> R.drawable.wheat
     }
 }
+
+@DrawableRes
+fun getDrawableResource(productName: String): Int {
+    return when (productName) {
+        "Blueberries" -> R.drawable.blueberries
+        "Carrots" -> R.drawable.carrots
+        "Cauliflower" -> R.drawable.cauliflower
+        "Corn" -> R.drawable.corn
+        "Melons" -> R.drawable.melons
+        "Peppers" -> R.drawable.peppers
+        "Pomegranates" -> R.drawable.pomegranates
+        "Potatoes" -> R.drawable.potato
+        "Pumpkins" -> R.drawable.pumpkin_seeds
+        else -> R.drawable.wheat
+    }
+}

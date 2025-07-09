@@ -1,13 +1,15 @@
 package edu.dixietech.alanmcgraw.cropcanvas.ui.screen.plot.components
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,13 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import edu.dixietech.alanmcgraw.cropcanvas.R
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Plot
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.CustomTopAppBar
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRow
 import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.plot.PlotUiState
-import edu.dixietech.alanmcgraw.cropcanvas.ui.theme.CropCanvasTheme
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,14 +39,15 @@ fun PlotListScreen(
     state: PlotUiState.Success,
     onOpenDetail: (Plot) -> Unit,
     onCloseDetail: () -> Unit,
-    onPlantSeeds: (Plot) -> Unit,
+    onPlantSeeds: (Plot, String, Int) -> Unit,
     onHarvestCrop: (Plot) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val mediumSpacing = dimensionResource(R.dimen.medium_spacing)
 
-    val plots = state.plot
-    val selectedPlot = state.selectedPlot
+    val plots = state.plots
+
+
 
     Scaffold(
         topBar = {
@@ -57,7 +60,7 @@ fun PlotListScreen(
                 if (plots.isEmpty()) {
                     Text(
                         text = "You have no plots",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 } else {
                     Text(
@@ -72,43 +75,74 @@ fun PlotListScreen(
                 contentPadding = innerPadding
             ) {
                 items(plots, key = { plot -> plot.id }) { plot ->
+                    val currentPlotAction = determinePlotAction(plot)
+
+                    val backgroundColor = when (currentPlotAction) {
+                        is PlotAction.Plantable -> Color.Cyan
+                        is PlotAction.Harvestable -> Color.Green
+                        is PlotAction.PlantedNotReady -> Color.Magenta
+                    }
+
+
+                    val statusText: String
+                    val statusColor: Color
+
+                    when (currentPlotAction) {
+                        is PlotAction.Plantable -> {
+                            statusText = "Ready to Plant"
+                            statusColor = Color.Blue
+                        }
+                        is PlotAction.PlantedNotReady -> {
+                            statusText = "Growing"
+                            statusColor = Color.Yellow
+                        }
+                        is PlotAction.Harvestable -> {
+                            statusText = "Ready to Harvest"
+                            statusColor = Color.Green
+                        }
+                    }
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .background(backgroundColor)
                             .clickable { onOpenDetail(plot) }
                             .padding(horizontal = mediumSpacing)
                     ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            ListRow(
-                                image = plot.drawableResource ?: R.drawable.crop_plot_empty,
-                                title = plot.name,
-                                labelOne = { Text("Size: ${plot.size}") },
-                                labelTwo = { Text(plot.plant?.name ?: "Not Planted") }
-                            )
-                        }
+                        ListRow(
+                            image = plot.drawableResource ?: R.drawable.crop_plot_empty,
+                            title = plot.name,
+                            labelOne = { Text("Size: ${plot.size}") },
+                            labelTwo = {
+                                Text(
+                                    text = plot.plant?.name ?: "Not planted",
+                                    color = statusColor,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
 
-                        PlotActionButton(
-                            plot = plot,
-                            onPlantSeeds = onPlantSeeds,
-                            onHarvest = onHarvestCrop,
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
-                                .padding(mediumSpacing)
                         )
                     }
                     HorizontalDivider()
                 }
             }
 
-            if (selectedPlot != null) {
+            if (state.activePlotState?.plot != null) {
                 ModalBottomSheet(
                     onDismissRequest = onCloseDetail,
                     content = {
                         SelectedPlotDetail(
                             state = state,
-                            onPlantSeeds = { },
-                            onHarvestCrop = { },
-                            modifier = Modifier
+                            onPlantSeeds = onPlantSeeds,
+                            onHarvestCrop = onHarvestCrop
                         )
                     }
                 )

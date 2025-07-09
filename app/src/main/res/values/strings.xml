@@ -23,5 +23,6 @@
     <string name="shop">Shop</string>
     <string name="purchase_seeds">Purchase Seeds:</string>
     <string name="plots">Plots</string>
-    <string name="successfully_purchased">Successfully purchased</string>
+    <string name="successfully_purchased">Successfully purchased %1$s</string>
+    <string name="try_again">Try Again?</string>
 </resources>

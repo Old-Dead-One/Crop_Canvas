@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import edu.dixietech.alanmcgraw.cropcanvas.R
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Seed
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRow
+import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRowAmountLabel
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRowCostLabel
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRowTimeLabel
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.QuantitySelector
@@ -35,6 +36,8 @@ import edu.dixietech.alanmcgraw.cropcanvas.utils.drawableResource
 @Composable
 fun PurchaseSeedPrompt(
     state: PurchaseState,
+    numberOwned: Int,
+    balance: Int,
     onPurchase: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -46,7 +49,7 @@ fun PurchaseSeedPrompt(
         ListRow(
             image = state.seed.drawableResource(),
             title = state.seed.name,
-            labelOne = { ListRowCostLabel(state.seed.price ?: 0) },
+            labelOne = { ListRowAmountLabel(numberOwned) },
             labelTwo = { ListRowTimeLabel(state.seed.growthDuration) }
         )
 
@@ -78,6 +81,9 @@ fun PurchaseSeedPrompt(
 
         Button(
             onClick = { onPurchase(quantity) },
+            // Disable if we are processing a purchase or if we don't have enough money
+            enabled = (state !is PurchaseState.Processing) &&
+                    (balance >= (state.seed.price ?: 0) * quantity),
             shape = MaterialTheme.shapes.small,
             modifier = Modifier
                 .padding(horizontal = mediumPadding)
@@ -110,7 +116,9 @@ private fun PurchaseSeedPromptPrev() {
                 state = PurchaseState.Detail(
                     seed = Seed.examples.first()
                 ),
-                onPurchase = {}
+                numberOwned = 0,
+                onPurchase = {},
+                balance = 1000
             )
         }
     }

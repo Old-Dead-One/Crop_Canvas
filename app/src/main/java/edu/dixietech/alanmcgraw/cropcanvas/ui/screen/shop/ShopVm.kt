@@ -9,6 +9,7 @@ import edu.dixietech.alanmcgraw.cropcanvas.data.repository.CropCanvasRepository
 import edu.dixietech.alanmcgraw.cropcanvas.utils.AsyncResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -42,15 +43,17 @@ class ShopVm @Inject constructor(
 
     fun loadShop() {
         viewModelScope.launch {
-            repository.getShop().collect {
-                _uiState.value = when(it) {
-                    is AsyncResult.Loading -> ShopUiState.Loading
-                    is AsyncResult.Success -> {
-                        val sortedSeeds = it.result.items.sortedBy { it.price }
-                        ShopUiState.Success(it.result.copy(items = sortedSeeds))
-                    }
+            repository.getShop().collect { result ->
+                _uiState.update { currentState ->
+                    when(result) {
+                        is AsyncResult.Loading -> currentState
+                        is AsyncResult.Success -> {
+                            val sortedSeeds = result.result.items.sortedBy { it.price }
+                            ShopUiState.Success(result.result.copy(items = sortedSeeds))
+                        }
 
-                    is AsyncResult.Error -> ShopUiState.Error(it.message)
+                        is AsyncResult.Error -> ShopUiState.Error(result.message)
+                    }
                 }
             }
         }
@@ -83,33 +86,45 @@ class ShopVm @Inject constructor(
 
         viewModelScope.launch {
             repository.purchaseSeed(purchaseState.seed, quantity).collect { result ->
-                when (result) {
-                    is AsyncResult.Loading -> {
-                        _uiState.value = state.copy(
-                            purchaseState = PurchaseState.Processing(purchaseState.seed)
-                        )
-                    }
-
-                    is AsyncResult.Success -> {
-                        _uiState.value = state.copy(
-                            shop = state.shop.copy(
-                                balance = result.result.newBalance
-                            ),
-                            purchaseState = PurchaseState.Purchased(purchaseState.seed)
-                        )
-                    }
-
-                    is AsyncResult.Error -> {
-                        _uiState.value = state.copy(
-                            purchaseState = PurchaseState.Failed(
-                                seed = purchaseState.seed,
-                                message = result.message
+                _uiState.update { currentState ->
+                    if (currentState !is ShopUiState.Success) return@update currentState
+                    
+                    when (result) {
+                        is AsyncResult.Loading -> {
+                            currentState.copy(
+                                purchaseState = PurchaseState.Processing(purchaseState.seed)
                             )
+                        }
 
-                        )
+                        is AsyncResult.Success -> {
+                            // Force refresh shop data after purchase
+                            forceRefreshShop()
+                            
+                            currentState.copy(
+                                shop = currentState.shop.copy(
+                                    balance = result.result.newBalance
+                                ),
+                                purchaseState = PurchaseState.Purchased(purchaseState.seed)
+                            )
+                        }
+
+                        is AsyncResult.Error -> {
+                            currentState.copy(
+                                purchaseState = PurchaseState.Failed(
+                                    seed = purchaseState.seed,
+                                    message = result.message
+                                )
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+
+    fun forceRefreshShop() {
+        viewModelScope.launch {
+            loadShop()
         }
     }
 }

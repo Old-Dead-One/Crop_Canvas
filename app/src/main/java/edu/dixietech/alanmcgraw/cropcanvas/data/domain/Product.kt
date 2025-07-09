@@ -8,30 +8,31 @@ data class Product(
     val amount: Int,
     val worth: Int,
     @DrawableRes val drawableResource: Int,
-) {
-
-    companion object {
-        val examples by lazy {
-            listOf(
-                Product(
-                    name = "Blueberries",
-                    amount = 10,
-                    worth = 100,
-                    drawableResource = R.drawable.blueberries
-                ),
-                Product(
-                    name = "Carrots",
-                    amount = 5,
-                    worth = 10,
-                    drawableResource = R.drawable.carrots
-                ),
-                Product(
-                    name = "Melon Seeds",
-                    amount = 10,
-                    worth = 259,
-                    drawableResource = R.drawable.melon_seeds
-                ),
-            )
-        }
-    }
-}
+)
+//{
+//
+//    companion object {
+//        val examples by lazy {
+//            listOf(
+//                Product(
+//                    name = "Blueberries",
+//                    amount = 10,
+//                    worth = 100,
+//                    drawableResource = R.drawable.blueberries
+//                ),
+//                Product(
+//                    name = "Carrots",
+//                    amount = 5,
+//                    worth = 10,
+//                    drawableResource = R.drawable.carrots
+//                ),
+//                Product(
+//                    name = "Melon Seeds",
+//                    amount = 10,
+//                    worth = 259,
+//                    drawableResource = R.drawable.melon_seeds
+//                ),
+//            )
+//        }
+//    }
+//}

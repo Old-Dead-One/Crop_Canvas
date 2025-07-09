@@ -3,11 +3,14 @@ package edu.dixietech.alanmcgraw.cropcanvas.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,7 +28,9 @@ import edu.dixietech.alanmcgraw.cropcanvas.ui.theme.CropCanvasTheme
 @Composable
 fun ErrorScreen(
     message: String,
-    modifier: Modifier = Modifier
+    onTryAgain: () -> Unit,
+    modifier: Modifier = Modifier,
+    extraContent: @Composable (ColumnScope.() -> Unit) = {}
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -57,6 +62,18 @@ fun ErrorScreen(
                 text = message,
                 textAlign = TextAlign.Center
             )
+
+            Button(
+                onClick = onTryAgain,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
+            ) {
+                Text(stringResource(R.string.try_again))
+            }
+
+            extraContent()
         }
     }
 }
@@ -69,7 +86,10 @@ private fun ErrorScreenPreview() {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            ErrorScreen("An Error Occurred")
+            ErrorScreen(
+                message = "An Error Occurred",
+                onTryAgain = { }
+            )
         }
     }
 }

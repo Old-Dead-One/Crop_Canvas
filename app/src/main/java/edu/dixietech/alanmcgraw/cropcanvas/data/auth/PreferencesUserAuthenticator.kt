@@ -16,12 +16,17 @@ class PreferencesUserAuthenticator(
 ): UserAuthenticator {
     override val authToken: Flow<String?> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) {
-                Log.e(LOG_TAG, "Error Reading Preferences", exception)
-                emit(emptyPreferences())
-            } else throw exception
+            Log.e(LOG_TAG, "Error Reading Preferences", exception)
+            emit(emptyPreferences())
         }
-        .map { it[USER_TOKEN] }
+        .map { preferences ->
+            try {
+                preferences[USER_TOKEN]
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Error accessing USER_TOKEN", e)
+                null
+            }
+        }
 
     override suspend fun saveToken(token: String) {
         dataStore.edit { preferences ->

@@ -1,6 +1,7 @@
 package edu.dixietech.alanmcgraw.cropcanvas.ui.screen.shop
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -15,6 +16,9 @@ fun ShopScreen(
     shopVm: ShopVm = hiltViewModel()
 ) {
     val state by shopVm.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        shopVm.forceRefreshShop()
+    }
 
     when (val state = state) {
         is ShopUiState.Loading -> LoadingScreen(modifier)
@@ -24,6 +28,10 @@ fun ShopScreen(
             onClosedDetail = shopVm::closeDetail,
             onPurchase = shopVm::purchase
         )
-        is ShopUiState.Error -> ErrorScreen(state.message, modifier)
+        is ShopUiState.Error -> ErrorScreen(
+            message = state.message,
+            onTryAgain = shopVm::forceRefreshShop,
+            modifier = modifier
+        )
     }
 }

@@ -16,7 +16,6 @@ import edu.dixietech.alanmcgraw.cropcanvas.ui.navigation.AppNavigation
 import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.auth.AuthScreen
 import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.auth.AuthUiState
 import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.auth.AuthVm
-import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.profile.ProfileScreen
 import edu.dixietech.alanmcgraw.cropcanvas.ui.theme.CropCanvasTheme
 
 @AndroidEntryPoint
@@ -24,18 +23,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
         setContent {
             CropCanvasTheme {
-                    RootScreen()
-//                    AuthScreen(
-//                        state = AuthUiState.Unauthenticated,
-//                        onSignIn = { },
-//                        onSignUp = { }
-//                    )
-                }
+                RootScreen()
+
             }
         }
     }
+}
 
 @Composable
 fun RootScreen(

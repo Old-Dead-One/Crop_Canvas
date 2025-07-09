@@ -56,9 +56,11 @@ object AppModule {
     @Provides
     fun providesCropCanvasRepository(
         network: CropCanvasApi,
+        database: CropCanvasDatabase,
         userAuthenticator: UserAuthenticator,
     ): CropCanvasRepository = CropCanvasRepositoryImpl(
         network = network,
+        database = database,
         userAuthenticator = userAuthenticator,
         context = Dispatchers.Default
     )
@@ -72,5 +74,5 @@ object AppModule {
             context,
             RoomCropCanvasDatabase::class.java,
             "crop_canvas_database"
-    ).build()
+    ).fallbackToDestructiveMigration(true).build()
 }
