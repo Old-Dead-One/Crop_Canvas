@@ -29,8 +29,6 @@ class AuthVm @Inject constructor(
         viewModelScope.launch {
             try {
                 userRepo.authToken.collect { token ->
-                    // Handle Token Changes
-                    android.util.Log.d("AuthVm", "Token received: ${token?.take(10)}...")
                     if (token == null) {
                         _uiState.value = AuthUiState.Unauthenticated
                     } else {
@@ -38,7 +36,6 @@ class AuthVm @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                android.util.Log.e("AuthVm", "Error in auth token flow", e)
                 _uiState.value = AuthUiState.Error("Authentication error: ${e.message}")
             }
         }

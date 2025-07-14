@@ -13,8 +13,8 @@ data class SellResponse(
     val amount: Int? = null
 ) {
     fun toReceipt() = Receipt(
-        oldBalance = 0, // We don't have this info from sell response
-        newBalance = 0, // We don't have this info from sell response
+        oldBalance = 0,
+        newBalance = 0,
         numberOfItemsPurchased = amount
     )
 } 

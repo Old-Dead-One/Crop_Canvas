@@ -7,3 +7,4 @@ data class PurchaseRequest(
     val name: String,
     val amount: Int
 )
+

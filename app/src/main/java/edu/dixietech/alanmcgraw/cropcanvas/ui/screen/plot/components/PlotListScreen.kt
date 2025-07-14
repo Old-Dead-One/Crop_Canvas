@@ -1,22 +1,20 @@
 package edu.dixietech.alanmcgraw.cropcanvas.ui.screen.plot.components
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,12 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import edu.dixietech.alanmcgraw.cropcanvas.R
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Plot
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.CustomTopAppBar
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRow
 import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.plot.PlotUiState
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +39,7 @@ fun PlotListScreen(
     onCloseDetail: () -> Unit,
     onPlantSeeds: (Plot, String, Int) -> Unit,
     onHarvestCrop: (Plot) -> Unit,
+    onPurchasePlots: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val mediumSpacing = dimensionResource(R.dimen.medium_spacing)
@@ -48,25 +47,46 @@ fun PlotListScreen(
     val plots = state.plots
 
 
-
     Scaffold(
         topBar = {
-            CustomTopAppBar(Modifier.padding(mediumSpacing)) {
-                Text(
-                    text = "Welcome to plots!",
-                    style = MaterialTheme.typography.displaySmall
-                )
+            CustomTopAppBar(
+                modifier = Modifier
+                    .padding(mediumSpacing)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(mediumSpacing)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = mediumSpacing)
+                    ) {
+                        Text(
+                            text = "Welcome to plots!",
+                            style = MaterialTheme.typography.headlineSmall,
+                        )
 
-                if (plots.isEmpty()) {
-                    Text(
-                        text = "You have no plots",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                } else {
-                    Text(
-                        text = "You have ${plots.size} plots",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                        if (plots.isEmpty()) {
+                            Text(
+                                text = "You have no plots",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        } else {
+                            Text(
+                                text = "You have ${plots.size} plots",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = onPurchasePlots,
+                        modifier = Modifier
+                    ) {
+                        Text(text = "Purchase Plots")
+                    }
                 }
             }
         },

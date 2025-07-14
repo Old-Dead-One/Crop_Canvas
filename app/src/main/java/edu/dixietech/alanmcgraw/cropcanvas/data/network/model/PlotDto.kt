@@ -30,3 +30,26 @@ data class PlotDto(
         profileName = profileName,
     )
 }
+
+@Serializable
+data class AvailablePlotDto(
+    val id: Int,
+    val name: String,
+    val size: Int,
+    val price: Int
+) {
+    fun toPlot() = Plot(
+        id = id.toString(),
+        name = name,
+        size = size,
+        drawableResource = R.drawable.crop_plot_empty,
+        price = price
+    )
+}
+
+@Serializable
+data class AvailablePlotsResponseDto(
+    val number_of_items: Int,
+    val items: List<AvailablePlotDto>,
+    val balance: Int
+)

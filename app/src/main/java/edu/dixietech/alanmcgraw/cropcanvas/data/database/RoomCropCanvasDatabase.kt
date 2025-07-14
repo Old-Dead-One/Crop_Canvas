@@ -29,18 +29,11 @@ abstract class RoomCropCanvasDatabase: RoomDatabase(), CropCanvasDatabase {
     override suspend fun getProfile(token: String) = profileDao.readProfile(token)
     override fun observeProfile(name: String) = profileDao.observeProfile(name)
     override suspend fun saveProfile(profile: ProfileEntity) {
-        android.util.Log.d("RoomDB", "saveProfile: Starting save for profile ${profile.profile.name}")
-        android.util.Log.d("RoomDB", "saveProfile: Seeds to save: ${profile.seeds.size}")
-        android.util.Log.d("RoomDB", "saveProfile: Products to save: ${profile.products.size}")
-        android.util.Log.d("RoomDB", "saveProfile: Plots to save: ${profile.plots.size}")
-        
         withTransaction {
             profileDao.upsertStub(profile.profile)
             seedDao.upsertSeeds(profile.seeds)
             productDao.upsertProducts(profile.products)
             plotDao.upsertPlots(profile.plots)
         }
-        
-        android.util.Log.d("RoomDB", "saveProfile: Save completed")
     }
 }

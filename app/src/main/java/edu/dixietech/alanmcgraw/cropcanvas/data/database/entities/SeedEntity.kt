@@ -32,11 +32,3 @@ data class SeedEntity(
         growthDuration = growthDuration
     )
 }
-
-fun Seed.toSeedEntity(profileName: String) = SeedEntity(
-    name = name,
-    amount = amount,
-    price = price,
-    growthDuration = growthDuration,
-    profileName = profileName
-)

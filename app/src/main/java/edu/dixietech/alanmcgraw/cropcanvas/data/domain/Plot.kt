@@ -8,4 +8,5 @@ data class Plot(
     val size: Int,
     val plant: Plant? = null,
     @DrawableRes val drawableResource: Int? = null,
+    val price: Int? = null,
 )

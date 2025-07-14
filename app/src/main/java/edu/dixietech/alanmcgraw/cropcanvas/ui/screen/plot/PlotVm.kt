@@ -1,7 +1,6 @@
 package edu.dixietech.alanmcgraw.cropcanvas.ui.screen.plot
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 sealed class PlotUiState {
@@ -23,7 +23,6 @@ sealed class PlotUiState {
         val plots: List<Plot>,
         val availableSeeds: List<Seed> = emptyList(),
         val activePlotState: PlotState? = null
-
     ): PlotUiState()
     data class Error(val message: String): PlotUiState()
 }
@@ -33,7 +32,27 @@ sealed class PlotState(open val plot: Plot?) {
     data class UnPlanted(override val plot: Plot?): PlotState(plot)
     data class Planted(override val plot: Plot): PlotState(plot)
     data class Failed(override val plot: Plot, val message: String): PlotState(plot)
+    data class Harvested(override val plot: Plot, val harvestedCrop: String): PlotState(plot)
 }
+
+sealed class PlotShopUiState {
+    object Loading: PlotShopUiState()
+    data class Success(
+        val availablePlots: List<Plot>,
+        val selectedPlot: Plot? = null,
+        val purchaseState: PlotPurchaseState? = null,
+        val balance: Int = 0
+    ): PlotShopUiState()
+    data class Error(val message: String): PlotShopUiState()
+}
+
+sealed class PlotPurchaseState(val plot: Plot) {
+    class Detail(plot: Plot): PlotPurchaseState(plot)
+    class Processing(plot: Plot): PlotPurchaseState(plot)
+    class Failed(plot: Plot, val message: String): PlotPurchaseState(plot)
+    class Purchased(plot: Plot): PlotPurchaseState(plot)
+}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
@@ -44,8 +63,134 @@ class PlotVm @Inject constructor(
     private val _uiState = MutableStateFlow<PlotUiState>(PlotUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
+    private val _plotShopUiState = MutableStateFlow<PlotShopUiState>(PlotShopUiState.Loading)
+    val plotShopUiState = _plotShopUiState.asStateFlow()
+
     init {
         observeProfileData()
+    }
+    
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun observeProfileData() {
+        viewModelScope.launch {
+            repository.observeUserProfile().collect { profile ->
+                val previousActivePlot = (_uiState.value as? PlotUiState.Success)?.activePlotState?.plot
+                val sortedPlots = profile.plots.sortedBy { it.size }
+                val seeds = profile.seeds
+                val restoredActivePlot = previousActivePlot?.let { oldPlot ->
+                    sortedPlots.find { it.id == oldPlot.id }
+                }
+                val newActivePlotState = restoredActivePlot?.let {
+                    if (it.plant == null) {
+                        PlotState.UnPlanted(it)
+                    } else {
+                        if (it.plant.isReadyToHarvest()) {
+                            PlotState.Detail(it)
+                        } else {
+                            PlotState.Planted(it)
+                        }
+                    }
+                } ?: PlotState.UnPlanted(null)
+
+                val newUiState = PlotUiState.Success(
+                    plots = sortedPlots,
+                    availableSeeds = seeds,
+                    activePlotState = newActivePlotState
+                )
+                _uiState.update { newUiState }
+            }
+        }
+    }
+
+    fun loadPlotShop() {
+        viewModelScope.launch {
+            repository.getAvailablePlots().collect { result ->
+                _plotShopUiState.update { currentState ->
+                    when (result) {
+                        is AsyncResult.Loading -> PlotShopUiState.Loading
+                        is AsyncResult.Success -> {
+                            val (plots, balance) = result.result
+                            val sortedPlots = plots.sortedBy { it.size }
+                            PlotShopUiState.Success(
+                                availablePlots = sortedPlots,
+                                balance = balance
+                            )
+                        }
+                        is AsyncResult.Error -> {
+                            PlotShopUiState.Error(result.message)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun selectPlot(plot: Plot) {
+        val state = _plotShopUiState.value
+        if (state !is PlotShopUiState.Success) return
+
+        _plotShopUiState.value = state.copy(
+            selectedPlot = plot
+        )
+    }
+
+    fun resetPlotShop() {
+        _plotShopUiState.value = PlotShopUiState.Loading
+    }
+
+    fun purchasePlot(plot: Plot) {
+        viewModelScope.launch {
+            val plotId = plot.id.toIntOrNull()
+            if (plotId == null) {
+                _plotShopUiState.update { currentState ->
+                    if (currentState is PlotShopUiState.Success) {
+                        currentState.copy(
+                            purchaseState = PlotPurchaseState.Failed(
+                                plot = plot,
+                                message = "Invalid plot ID"
+                            )
+                        )
+                    } else currentState
+                }
+                return@launch
+            }
+
+            repository.purchasePlots(plotId).collect { result ->
+                _plotShopUiState.update { currentState ->
+                    if (currentState !is PlotShopUiState.Success) return@update currentState
+
+                    when (result) {
+                        is AsyncResult.Loading -> {
+                            currentState.copy(
+                                purchaseState = PlotPurchaseState.Processing(plot)
+                            )
+                        }
+
+                        is AsyncResult.Success -> {
+                            forceRefreshPlotShop()
+                            currentState.copy(
+                                purchaseState = PlotPurchaseState.Purchased(plot)
+                            )
+                        }
+
+                        is AsyncResult.Error -> {
+                            currentState.copy(
+                                purchaseState = PlotPurchaseState.Failed(
+                                    plot = plot,
+                                    message = result.message
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun forceRefreshPlotShop() {
+        viewModelScope.launch {
+            loadPlotShop()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -150,16 +295,47 @@ class PlotVm @Inject constructor(
             }
             return
         }
+        
+        val harvestedCropName = plotFromList.plant.name
+        
         viewModelScope.launch {
+            // Immediately show harvested state with confirmation
             _uiState.update { state ->
                 if (state is PlotUiState.Success) {
-                    state.copy(activePlotState = PlotState.Detail(plotToHarvest))
+                    // Update the plot list to show it as unplanted
+                    val updatedPlots = state.plots.map { plot ->
+                        if (plot.id == plotToHarvest.id) {
+                            plot.copy(plant = null)
+                        } else {
+                            plot
+                        }
+                    }
+                    state.copy(
+                        plots = updatedPlots,
+                        activePlotState = PlotState.Harvested(plotToHarvest.copy(plant = null), harvestedCropName)
+                    )
                 } else state
             }
+            
             repository.harvestCrop(plotToHarvest).collect { result ->
                 when (result) {
-                    is AsyncResult.Loading -> PlotUiState.Loading
-                    is AsyncResult.Success -> { forceRefreshProfile() }
+                    is AsyncResult.Loading -> {
+                        // Keep the harvested state during loading
+                    }
+                    is AsyncResult.Success -> { 
+                        // Refresh profile to get updated data
+                        forceRefreshProfile()
+                        
+                        // Auto-clear harvest confirmation after 3 seconds
+                        delay(3000)
+                        _uiState.update { currentState ->
+                            if (currentState is PlotUiState.Success && currentState.activePlotState is PlotState.Harvested) {
+                                currentState.copy(
+                                    activePlotState = PlotState.UnPlanted(plotToHarvest.copy(plant = null))
+                                )
+                            } else currentState
+                        }
+                    }
                     is AsyncResult.Error -> {
                         _uiState.update { currentState ->
                             if (currentState is PlotUiState.Success) {
@@ -175,38 +351,6 @@ class PlotVm @Inject constructor(
                         }
                     }
                 }
-            }
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun observeProfileData() {
-        viewModelScope.launch {
-            repository.observeUserProfile().collect { profile ->
-                val previousActivePlot = (_uiState.value as? PlotUiState.Success)?.activePlotState?.plot
-                val sortedPlots = profile.plots.sortedBy { it.name }
-                val seeds = profile.seeds
-                val restoredActivePlot = previousActivePlot?.let { oldPlot ->
-                    sortedPlots.find { it.id == oldPlot.id }
-                }
-                val newActivePlotState = restoredActivePlot?.let {
-                    if (it.plant == null) {
-                        PlotState.UnPlanted(it)
-                    } else {
-                        if (it.plant.isReadyToHarvest()) {
-                            PlotState.Detail(it)
-                        } else {
-                            PlotState.Planted(it)
-                        }
-                    }
-                } ?: PlotState.UnPlanted(null)
-
-                val newUiState = PlotUiState.Success(
-                    plots = sortedPlots,
-                    availableSeeds = seeds,
-                    activePlotState = newActivePlotState
-                )
-                _uiState.update { newUiState }
             }
         }
     }

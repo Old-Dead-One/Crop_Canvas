@@ -4,8 +4,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.time.format.DateTimeFormatter
-import java.time.LocalDate
 
 @Serializable
 data class Plant(
@@ -26,16 +24,7 @@ data class Plant(
             
             !currentDateTime.isBefore(maturationDateTime)
         } catch (e: Exception) {
-            android.util.Log.e("Plant", "Error parsing date: $maturationDate", e)
             false
         }
     }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun toPlant() = Plant(
-        name = name,
-        amount = amount,
-        plantedDate = plantedDate,
-        maturationDate = maturationDate
-    )
 }

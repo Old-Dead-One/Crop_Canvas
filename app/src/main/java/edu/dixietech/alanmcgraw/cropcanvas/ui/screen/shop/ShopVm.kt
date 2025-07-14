@@ -31,7 +31,7 @@ sealed class PurchaseState(val seed: Seed) {
 
 @HiltViewModel
 class ShopVm @Inject constructor(
-    val repository: CropCanvasRepository
+    private val repository: CropCanvasRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ShopUiState>(ShopUiState.Loading)

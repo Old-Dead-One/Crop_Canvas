@@ -54,7 +54,6 @@ fun PlotActionButton(
             Button(
                 onClick = { },
                 contentPadding = PaddingValues(0.dp),
-//                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
                 enabled = false,
                 modifier = modifier.width(80.dp)
             ) {
@@ -75,12 +74,9 @@ sealed interface PlotAction {
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun determinePlotAction(plot: Plot?): PlotAction {
-    // If no plot or no plant, it's plantable
     if (plot?.plant == null) {
         return PlotAction.Plantable
     }
-
-    // Use the Plant's built-in method for consistency
     return if (plot.plant.isReadyToHarvest()) {
         PlotAction.Harvestable
     } else {

@@ -32,21 +32,6 @@ class ProfileVm @Inject constructor(
         observeProfile()
     }
 
-    fun loadProfile() {
-        // Cancel any existing collection to avoid multiple collectors
-        viewModelScope.launch {
-            repository.getUserProfile().collect { result ->
-                _uiState.update { 
-                    when (result) {
-                        is AsyncResult.Loading -> ProfileUiState.Loading
-                        is AsyncResult.Success -> ProfileUiState.Success(result.result)
-                        is AsyncResult.Error -> ProfileUiState.Error(result.message)
-                    }
-                }
-            }
-        }
-    }
-
     fun observeProfile() {
         viewModelScope.launch {
             try {
@@ -54,7 +39,6 @@ class ProfileVm @Inject constructor(
                     _uiState.update { ProfileUiState.Success(profile) }
                 }
             } catch (e: Exception) {
-                android.util.Log.e("ProfileVm", "Error in observeProfile", e)
             }
         }
     }
@@ -69,14 +53,11 @@ class ProfileVm @Inject constructor(
         viewModelScope.launch {
             repository.sellProducts(productName, amount).collect { result ->
                 when (result) {
-                    is AsyncResult.Loading -> { /* Loading state handled by UI */ }
+                    is AsyncResult.Loading -> { }
                     is AsyncResult.Success -> {
-                        // Force refresh profile data after selling
                         forceRefreshProfile()
                     }
-                    is AsyncResult.Error -> {
-                        android.util.Log.e("ProfileVm", "Selling failed: ${result.message}")
-                    }
+                    is AsyncResult.Error -> { }
                 }
             }
         }
@@ -85,10 +66,8 @@ class ProfileVm @Inject constructor(
     fun forceRefreshProfile() {
         viewModelScope.launch {
             try {
-                // Cancel current collection and restart with fresh data
                 observeProfile()
             } catch (e: Exception) {
-                android.util.Log.e("ProfileVm", "Error in forceRefreshProfile", e)
             }
         }
     }

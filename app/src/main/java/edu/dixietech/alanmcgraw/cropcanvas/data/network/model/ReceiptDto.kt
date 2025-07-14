@@ -15,6 +15,9 @@ data class ReceiptDto(
 
     @SerialName("number_of_items_purchased")
     val numberOfItemsPurchased: Int,
+
+    @SerialName("items")
+    val items: List<PurchasedItemDto> = emptyList(),
 ) {
     fun toReceipt() = Receipt(
         oldBalance = oldBalance,
@@ -22,3 +25,10 @@ data class ReceiptDto(
         numberOfItemsPurchased = numberOfItemsPurchased
     )
 }
+
+@Serializable
+data class PurchasedItemDto(
+    val id: String,
+    val name: String,
+    val size: Int
+)

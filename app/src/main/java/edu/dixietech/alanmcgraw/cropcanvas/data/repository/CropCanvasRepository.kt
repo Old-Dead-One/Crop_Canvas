@@ -16,7 +16,11 @@ interface CropCanvasRepository {
 
     suspend fun getShop(): Flow<AsyncResult<Shop>>
 
+    suspend fun getAvailablePlots(): Flow<AsyncResult<Pair<List<Plot>, Int>>>
+
     suspend fun purchaseSeed(seed: Seed, amount: Int): Flow<AsyncResult<Receipt>>
+
+    suspend fun purchasePlots(plotId: Int): Flow<AsyncResult<Receipt>>
 
     suspend fun getPlots(): Flow<AsyncResult<List<Plot>>>
 
@@ -27,4 +31,5 @@ interface CropCanvasRepository {
     suspend fun harvestCrop(plot: Plot): Flow<AsyncResult<Plot>>
     
     suspend fun sellProducts(productName: String, amount: Int): Flow<AsyncResult<Receipt>>
+
 }

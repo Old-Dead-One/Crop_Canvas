@@ -1,6 +1,7 @@
 package edu.dixietech.alanmcgraw.cropcanvas.data.network
 
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.AuthResponse
+import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.AvailablePlotsResponseDto
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.CropCanvasError
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.PlantSeedRequest
 import edu.dixietech.alanmcgraw.cropcanvas.data.network.model.PlantSeedsDto
@@ -49,13 +50,11 @@ class KtorCropCanvasApi(
 
     override suspend fun createAccount(username: String): AuthResponse {
         return withContext(context) {
-            android.util.Log.d("KtorCropCanvasApi", "Starting createAccount API call for username: $username")
             try {
                 val response = client.post("https://cropcanvas.dev/profile") {
                     header("Content-Type", "application/json")
                     setBody(mapOf("name" to username))
                 }
-                android.util.Log.d("KtorCropCanvasApi", "createAccount API call completed with status: ${response.status.value}")
 
                 when (response.status.value) {
                     201 -> return@withContext response.body()
@@ -63,9 +62,6 @@ class KtorCropCanvasApi(
                     else -> throw UnexpectedResponseException()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("KtorCropCanvasApi", "createAccount API call failed", e)
-                android.util.Log.e("KtorCropCanvasApi", "Exception type: ${e.javaClass.simpleName}")
-                android.util.Log.e("KtorCropCanvasApi", "Exception message: ${e.message}")
                 throw e
             }
         }
@@ -73,15 +69,12 @@ class KtorCropCanvasApi(
 
     override suspend fun getProfile(token: String): ProfileDto {
         return withContext(context) {
-            android.util.Log.d("KtorCropCanvasApi", "Starting getProfile API call")
             try {
-                android.util.Log.d("KtorCropCanvasApi", "Making HTTP request to https://cropcanvas.dev/profile")
                 val response = client.get("https://cropcanvas.dev/profile") {
                     header("Authorization", "Bearer $token")
                     parameter("include_inventory", "true")
                     parameter("include_plots", "true")
                 }
-                android.util.Log.d("KtorCropCanvasApi", "getProfile API call completed with status: ${response.status.value}")
 
                 when (response.status.value) {
                     200 -> return@withContext response.body()
@@ -89,9 +82,6 @@ class KtorCropCanvasApi(
                     else -> throw UnexpectedResponseException()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("KtorCropCanvasApi", "getProfile API call failed", e)
-                android.util.Log.e("KtorCropCanvasApi", "Exception type: ${e.javaClass.simpleName}")
-                android.util.Log.e("KtorCropCanvasApi", "Exception message: ${e.message}")
                 throw e
             }
         }
@@ -122,6 +112,52 @@ class KtorCropCanvasApi(
             200 -> return@withContext response.body()
             400, 401, 500 -> throw response.body<CropCanvasError>()
             else -> throw UnexpectedResponseException()
+        }
+    }
+
+    override suspend fun getAvailablePlots(token: String): AvailablePlotsResponseDto {
+        return withContext(context) {
+            val response = client.get("https://cropcanvas.dev/shop/plots") {
+                header("Authorization", "Bearer $token")
+            }
+
+            when (response.status.value) {
+                200 -> return@withContext response.body()
+                400, 401, 500 -> throw response.body<CropCanvasError>()
+                else -> throw UnexpectedResponseException()
+            }
+        }
+    }
+
+    override suspend fun purchasePlots(token: String, plotId: Int): ReceiptDto = withContext(context) {
+        val requestBody = mapOf("amount" to 1)
+        
+        val response = client.put("https://cropcanvas.dev/shop/plots/$plotId") {
+            header("Authorization", "Bearer $token")
+            header("Content-Type", "application/json")
+            setBody(requestBody)
+        }
+        
+        when (response.status.value) {
+            200 -> {
+                try {
+                    val body = response.body<ReceiptDto>()
+                    return@withContext body
+                } catch (e: Exception) {
+                    throw e
+                }
+            }
+            400, 401, 500 -> {
+                val error = response.body<CropCanvasError>()
+                throw error
+            }
+            else -> {
+                try {
+                    val errorBody = response.body<String>()
+                } catch (e: Exception) {
+                }
+                throw UnexpectedResponseException()
+            }
         }
     }
 
@@ -188,18 +224,13 @@ class KtorCropCanvasApi(
         when (response.status.value) {
             200 -> {
                 val sellResponse = response.body<SellResponse>()
-                android.util.Log.e("KtorCropCanvasApi", "Sell response: $sellResponse")
-                android.util.Log.e("KtorCropCanvasApi", "Response status: ${response.status.value}")
-                android.util.Log.e("KtorCropCanvasApi", "Response headers: ${response.headers}")
                 return@withContext sellResponse
             }
             400, 401, 500 -> {
                 val error = response.body<CropCanvasError>()
-                android.util.Log.e("KtorCropCanvasApi", "Sell error: $error")
                 throw error
             }
             else -> {
-                android.util.Log.e("KtorCropCanvasApi", "Unexpected status: ${response.status.value}")
                 throw UnexpectedResponseException()
             }
         }

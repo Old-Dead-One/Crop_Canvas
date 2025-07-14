@@ -1,5 +1,7 @@
 package edu.dixietech.alanmcgraw.cropcanvas.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -27,6 +29,7 @@ import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.shop.ShopScreen
 import edu.dixietech.alanmcgraw.cropcanvas.R
 import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.plot.PlotScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
 

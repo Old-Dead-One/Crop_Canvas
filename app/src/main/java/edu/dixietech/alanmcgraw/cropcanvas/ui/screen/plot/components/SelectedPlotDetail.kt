@@ -33,7 +33,36 @@ import edu.dixietech.alanmcgraw.cropcanvas.R
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Plot
 import edu.dixietech.alanmcgraw.cropcanvas.data.domain.Seed
 import edu.dixietech.alanmcgraw.cropcanvas.ui.components.ListRow
+import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.plot.PlotState
 import edu.dixietech.alanmcgraw.cropcanvas.ui.screen.plot.PlotUiState
+import java.time.Duration
+import java.time.OffsetDateTime
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun calculateTimeRemaining(maturationDate: String): String {
+    return try {
+        val maturationDateTime = OffsetDateTime.parse(maturationDate)
+        val currentDateTime = OffsetDateTime.now()
+        
+        if (currentDateTime.isAfter(maturationDateTime)) {
+            return "Ready to harvest!"
+        }
+        
+        val duration = Duration.between(currentDateTime, maturationDateTime)
+        val days = duration.toDays()
+        val hours = duration.toHours() % 24
+        val minutes = duration.toMinutes() % 60
+        
+        when {
+            days > 0 -> "$days days, $hours hours"
+            hours > 0 -> "$hours hours, $minutes minutes"
+            minutes > 0 -> "$minutes minutes"
+            else -> "Almost ready!"
+        }
+    } catch (e: Exception) {
+        "Time unknown"
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -94,6 +123,39 @@ fun SelectedPlotDetail(
                     .padding(mediumPadding)
             )
         }
+        // Show harvest confirmation if plot was just harvested
+        if (state.activePlotState is PlotState.Harvested) {
+            val harvestedState = state.activePlotState
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = dimensionResource(R.dimen.large_spacing))
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(mediumPadding),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "✅ Successfully harvested ${harvestedState.harvestedCrop}!",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Green,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                
+                Spacer(Modifier.height(8.dp))
+                
+                Text(
+                    text = "The plot is now ready for new seeds.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        // Show plant details if plot has a growing plant
         state.activePlotState?.plot?.plant?.let { plant ->
             Column(
                 modifier = Modifier
@@ -133,10 +195,6 @@ fun SelectedPlotDetail(
                             modifier = Modifier
                             .weight(1f)
                         )
-//                        Text(
-//                            text = "Amount: ${plant.amount ?: 0}",
-//                            style = MaterialTheme.typography.bodyMedium
-//                        )
                     }
                 }
                 
@@ -147,29 +205,19 @@ fun SelectedPlotDetail(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
-//                    Column {
-//                        Text(
-//                            text = "Planted:",
-//                            style = MaterialTheme.typography.bodySmall,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                        Text(
-//                            text = plant.plantedDate,
-//                            style = MaterialTheme.typography.bodyMedium
-//                        )
-//                    }
                     
                     Column(
                         modifier = Modifier
                             .weight(1f)
                     ) {
                         Text(
-                            text = "Ready:",
+                            text = "Time Remaining:",
                             style = MaterialTheme.typography.bodySmall,
                         )
                         Text(
-                            text = plant.maturationDate,
-                            style = MaterialTheme.typography.bodyMedium
+                            text = calculateTimeRemaining(plant.maturationDate),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (plant.isReadyToHarvest()) Color.Green else Color.Blue
                         )
                     }
                     
@@ -220,7 +268,8 @@ fun SelectedPlotDetail(
                         Spacer(Modifier.height(16.dp))
 
                         if (selectedSeedToPlant != null) {
-                            Text("Quantity (Max: ${currentPlot.size}):")
+                            val maxPossibleSeeds = minOf(currentPlot.size, selectedSeedToPlant!!.amount ?: 0)
+                            Text("Quantity (Max: $maxPossibleSeeds):")
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -235,10 +284,17 @@ fun SelectedPlotDetail(
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Button(
-                                    onClick = { if (seedAmountToPlant < currentPlot.size) seedAmountToPlant++ },
-                                    enabled = seedAmountToPlant < currentPlot.size
+                                    onClick = { if (seedAmountToPlant < maxPossibleSeeds) seedAmountToPlant++ },
+                                    enabled = seedAmountToPlant < maxPossibleSeeds
                                 ) {
                                     Text("+")
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Button(
+                                    onClick = { seedAmountToPlant = maxPossibleSeeds },
+                                    enabled = seedAmountToPlant < maxPossibleSeeds
+                                ) {
+                                    Text("Max")
                                 }
                             }
                         } else {
@@ -259,7 +315,7 @@ fun SelectedPlotDetail(
                                 }
                             }
                         },
-                        enabled = selectedSeedToPlant != null && seedAmountToPlant > 0 && seedAmountToPlant <= currentPlot.size
+                        enabled = selectedSeedToPlant != null && seedAmountToPlant > 0 && seedAmountToPlant <= minOf(currentPlot.size, selectedSeedToPlant?.amount ?: 0)
                     ) {
                         Text("Confirm Plant")
                     }
